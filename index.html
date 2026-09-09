@@ -1,83 +1,4 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bierkompass AT</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a">
-</head>
-<body class="bg-slate-900 text-slate-100 p-4 font-sans min-h-screen pb-12">
-
-    <div class="max-w-4xl mx-auto space-y-6">
-        <!-- Header / Sprachauswahl -->
-        <header class="bg-slate-800 border border-slate-700 p-5 rounded-2xl shadow-xl flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-amber-500 flex items-center gap-2">🧭 Bierkompass AT</h1>
-                <p class="text-slate-400 text-xs mt-1" id="txt-subtitle">Dein Kompass für Bierspezialitäten & Aktionen in Österreich</p>
-            </div>
-            <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700">
-                <button onclick="setLanguage('de')" id="btn-de" class="px-3 py-1 text-xs font-bold rounded-lg bg-amber-500 text-slate-900 transition">DE</button>
-                <button onclick="setLanguage('en')" id="btn-en" class="px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition">EN</button>
-            </div>
-        </header>
-
-        <!-- Filter-Bereich -->
-        <section class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg space-y-6">
-            <!-- 1. Bierstil / Kategorie -->
-            <div>
-                <h2 class="text-base font-bold text-slate-200 mb-3" id="txt-cat-title">1. Bierstil / Kategorie</h2>
-                <div class="flex flex-wrap gap-2" id="categoryPills"></div>
-            </div>
-
-            <hr class="border-slate-700">
-
-            <!-- 2. Marke / Brauerei -->
-            <div>
-                <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-base font-bold text-slate-200" id="txt-sec1">2. Marke / Brauerei</h2>
-                    <span class="text-xs text-amber-500 cursor-pointer font-semibold" onclick="selectAllBeers()" id="txt-select-all">Alle auswählen</span>
-                </div>
-                <input type="text" id="beerSearch" oninput="filterBeerTiles()" placeholder="Suche (z.B. Gösser, Pils)..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500 mb-3 transition">
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-64 overflow-y-auto p-1" id="beerGrid"></div>
-            </div>
-
-            <hr class="border-slate-700">
-
-            <!-- 3. Entfernung & Geschäfte -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="text-sm font-bold block mb-2 text-slate-200"><span id="txt-dist">Max. Entfernung</span>: <span id="distVal" class="text-amber-500">15</span> km</label>
-                    <input type="range" min="1" max="30" value="15" class="w-full accent-amber-500 cursor-pointer" id="distRange" oninput="document.getElementById('distVal').innerText = this.value; renderCalendar();">
-                </div>
-                <div>
-                    <h2 class="text-sm font-bold mb-2 text-slate-200" id="txt-stores">Geschäfte (Spezifisch)</h2>
-                    <div class="flex flex-wrap gap-2" id="storePills"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Kalender-Übersicht (14 Tage) -->
-        <section class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold text-slate-100" id="txt-cal-title">Aktionen (Nächste 14 Tage)</h2>
-                <div class="text-xs space-x-3 flex items-center">
-                    <span class="inline-flex items-center gap-1 text-green-400 font-medium">🟢 <span id="txt-legend-green">Aktion</span></span>
-                    <span class="inline-flex items-center gap-1 text-slate-400 font-medium">⬛ <span id="txt-legend-red">Keine</span></span>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 text-center text-xs" id="calendarGrid"></div>
-        </section>
-
-        <!-- Details-Anzeige -->
-        <section id="detailsSection" class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg hidden">
-            <h3 class="text-base font-bold text-amber-500 border-b border-slate-700 pb-3 mb-4" id="selectedDateTitle">Aktionen am ausgewählten Tag</h3>
-            <div id="dealsList" class="space-y-3"></div>
-        </section>
-    </div>
-
-    <script>
+<script>
         const i18n = {
             de: {
                 subtitle: "Dein Kompass für Bierspezialitäten & Aktionen in Österreich",
@@ -115,6 +36,7 @@
             { id: 'Weizen', name: 'Weizen / Weißbier' },
             { id: 'IPA', name: 'IPA / APA' },
             { id: 'Dunkel', name: 'Dunkel / Stout' },
+            { id: 'Radler', name: 'Radler' },
             { id: 'Alkoholfrei', name: 'Alkoholfrei' }
         ];
         let activeCategory = 'Lager';
@@ -126,10 +48,15 @@
             { id: 'Puntigamer', name: 'Puntigamer', style: 'Lager', icon: '🍺' },
             { id: 'Murauer', name: 'Murauer', style: 'Lager', icon: '🍺' },
             { id: 'Ottakringer', name: 'Ottakringer', style: 'Lager', icon: '🍺' },
+            { id: 'Wieselburger', name: 'Wieselburger', style: 'Lager', icon: '🍺' },
+            { id: 'Schwechater', name: 'Schwechater', style: 'Lager', icon: '🍺' },
             { id: 'Schneider', name: 'Schneider Weisse', style: 'Weizen', icon: '🌾' },
             { id: 'Franziskaner', name: 'Franziskaner', style: 'Weizen', icon: '🌾' },
             { id: 'BrewDog', name: 'BrewDog Punk IPA', style: 'IPA', icon: '🌿' },
             { id: 'Hirter', name: 'Hirter Dunkel', style: 'Dunkel', icon: '🍻' },
+            { id: 'GoesserRadler', name: 'Gösser NaturRadler', style: 'Radler', icon: '🍋' },
+            { id: 'ZipferRadler', name: 'Zipfer Limetten-Radler', style: 'Radler', icon: '🍋' },
+            { id: 'StieglRadler', name: 'Stiegl-Radler Zitrone', style: 'Radler', icon: '🍋' },
             { id: 'GössaAF', name: 'Gösser Naturtrüb 0.0', style: 'Alkoholfrei', icon: '🛑' }
         ];
 
@@ -182,6 +109,15 @@
             }
             for (let i = 0; i < 5; i++) {
                 sampleDeals.push({ date: getFormattedDate(i), store: 'INTERSPAR', distance: 4.5, beer: 'Gösser', name: 'Gösser Märzen 20x0.5L Flasche', price: '13.80 €', origPrice: '21.80 €', note: 'Exklusiv bei INTERSPAR' });
+            }
+            for (let i = 1; i < 6; i++) {
+                sampleDeals.push({ date: getFormattedDate(i), store: 'SPAR', distance: 1.8, beer: 'GoesserRadler', name: 'Gösser NaturRadler 0.5L Dose', price: '0.89 €', origPrice: '1.29 €', note: 'Aktion' });
+            }
+            for (let i = 0; i < 6; i++) {
+                sampleDeals.push({ date: getFormattedDate(i), store: 'PENNY', distance: 2.5, beer: 'Wieselburger', name: 'Wieselburger Gold 0.5L Flasche', price: '0.79 €', origPrice: '1.19 €', note: 'Aktion' });
+            }
+            for (let i = 3; i < 8; i++) {
+                sampleDeals.push({ date: getFormattedDate(i), store: 'BILLA', distance: 1.5, beer: 'Schwechater', name: 'Schwechater Bier 0.5L Dose', price: '0.65 €', origPrice: '0.99 €', note: 'Dosen-Aktion' });
             }
         }
 
@@ -376,6 +312,4 @@
         renderStorePills();
         loadDealsData();
         setLanguage('de');
-    </script>
-</body>
-</html>
+</script>
