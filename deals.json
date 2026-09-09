@@ -1,0 +1,22 @@
+[
+  {
+    "date": "2026-09-10",
+    "store": "SPAR",
+    "distance": 1.8,
+    "beer": "Gösser",
+    "name": "Gösser Märzen 20x0.5L Flasche",
+    "price": "13.80 €",
+    "origPrice": "21.80 €",
+    "note": "Aktion gültig bis Samstag"
+  },
+  {
+    "date": "2026-09-11",
+    "store": "BILLA",
+    "distance": 2.1,
+    "beer": "Wieselburger",
+    "name": "Wieselburger Gold 0.5L Flasche",
+    "price": "0.79 €",
+    "origPrice": "1.19 €",
+    "note": "Wochenend-Aktion"
+  }
+]
