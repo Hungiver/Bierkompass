@@ -2,51 +2,48 @@ import json
 import requests
 from datetime import datetime, timedelta
 
-def fetch_aktions():
+def fetch_deals():
     deals = []
-    today = datetime.now()
-    
-    # 1. PÉLDA: SPAR / INTERSPAR Akciók lekérése API-n vagy strukturált adaton keresztül
-    # (A valós API végpontok az akciós újságok vagy a Spar.at belső keresőjéből érhetők el)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+
+    # 1. PENNY AT API
     try:
-        # Példa lekérés a SPAR API-hoz
-        spar_url = "https://www.spar.at/api/products/promotions"
-        # Ha a SPAR szigorúbb, közvetlen JSON API-kat vagy RSS/Aktionen csatornákat használunk
+        penny_url = "https://www.penny.at/api/products?category=bier" # Példa belső végpont
+        res = requests.get(penny_url, headers=headers, timeout=10)
+        if res.status_code == 200:
+            data = res.json()
+            for item in data.get("results", []):
+                if "Puntingamer" in item.get("name", "") or "Schwechater" in item.get("name", ""):
+                    deals.append({
+                        "date": datetime.now().strftime("%Y-%m-%d"),
+                        "store": "PENNY",
+                        "distance": 1.5,
+                        "beer": "Puntingamer" if "Puntingamer" in item["name"] else "Schwechater",
+                        "name": item.get("name"),
+                        "price": f"{item.get('price', 0) / 100:.2f} €",
+                        "origPrice": f"{item.get('regularPrice', 0) / 100:.2f} €",
+                        "note": "Penny Akció"
+                    })
     except Exception as e:
-        print(f"Hiba a SPAR adatok lekérésekor: {e}")
+        print(f"Penny hiba: {e}")
 
-    # MINTA AUTÓMATA GENERÁLÁS / BŐVÍTÉS A HETI AKCIÓKRA:
-    # A kód itt automatikusan kiszámolja a csütörtöktől szerdáig tartó osztrák akciós hetet
-    for day_offset in range(7):
-        current_date = (today + timedelta(days=day_offset)).strftime("%Y-%m-%d")
-        
-        # Példa automatikusan összeállított struktúrára
-        deals.append({
-            "date": current_date,
-            "store": "SPAR",
-            "distance": 1.8,
-            "beer": "Gösser",
-            "name": "Gösser Märzen 20x0.5L Flasche",
-            "price": "13.80 €",
-            "origPrice": "21.80 €",
-            "note": "Heti akció"
-        })
-        deals.append({
-            "date": current_date,
-            "store": "BILLA",
-            "distance": 2.1,
-            "beer": "Wieselburger",
-            "name": "Wieselburger Gold 0.5L Flasche",
-            "price": "0.79 €",
-            "origPrice": "1.19 €",
-            "note": "Wochenend-Aktion"
-        })
+    # 2. HOFER AT API
+    try:
+        hofer_url = "https://www.hofer.at/api/v1/products/offers"
+        res = requests.get(hofer_url, headers=headers, timeout=10)
+        if res.status_code == 200:
+            # Hofer termékek feldolgozása
+            pass
+    except Exception as e:
+        print(f"Hofer hiba: {e}")
 
-    # Mentés a deals.json fájlba
+    # Mentés deals.json-ba
     with open("deals.json", "w", encoding="utf-8") as f:
         json.dump(deals, f, ensure_ascii=False, indent=2)
 
-    print("deals.json sikeresen frissítve!")
+    print("Frissítés kész!")
 
 if __name__ == "__main__":
-    fetch_aktions()
+    fetch_deals()
