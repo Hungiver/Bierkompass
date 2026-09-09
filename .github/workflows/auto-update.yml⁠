@@ -2,9 +2,8 @@ name: Auto Update Beer Deals
 
 on:
   schedule:
-    # Lefut minden csütörtökön reggel 05:00 UTC-kor (az osztrák akciók kezdőnapján)
     - cron: '0 5 * * 4'
-  workflow_dispatch: # Lehetővé teszi a kézi indítást is a GitHub felületén
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,10 +11,10 @@ jobs:
 
     steps:
     - name: Repo klónozása
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Python beállítása
-      uses: actions/python-versions@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
@@ -27,7 +26,7 @@ jobs:
     - name: Adatgyűjtő szkript futtatása
       run: python scraper.py
 
-    - name: Változtatások mentése és feltöltése (Commit & Push)
+    - name: Változtatások mentése
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
