@@ -1,349 +1,381 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bierkompass AT</title>
-<script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f172a">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bierkompass AT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
 </head>
 <body class="bg-slate-900 text-slate-100 p-4 font-sans min-h-screen pb-12">
-<div class="max-w-4xl mx-auto space-y-6">
-<!-- FEJLÉC & NYELVVÁLTÓ -->
-<header class="bg-slate-800 border border-slate-700 p-5 rounded-2xl shadow-xl flex justify-between items-center">
-<div>
-<h1 class="text-2xl sm:text-3xl font-extrabold text-amber-500 flex items-center gap-2">
-🧭 Bierkompass AT
-</h1>
-<p class="text-slate-400 text-xs mt-1" id="txt-subtitle">Dein Kompass für Bierspezialitäten & Aktionen in Österreich</p>
-</div>
-<div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700">
-<button onclick="setLanguage('de')" id="btn-de" class="px-3 py-1 text-xs font-bold rounded-lg bg-amber-500 text-slate-900">DE</button>
-<button onclick="setLanguage('en')" id="btn-en" class="px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white">EN</button>
-</div>
-</header>
-<!-- SZŰRŐ FELÜLET -->
-<section class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg space-y-6">
-<!-- 1. KATEGÓRIA / STÍLUS SZŰRŐ -->
-<div>
-<h2 class="text-base font-bold text-slate-200 mb-3" id="txt-cat-title">1. Bierstil / Kategorie</h2>
-<div class="flex flex-wrap gap-2" id="categoryPills">
-</div>
-</div>
-<hr class="border-slate-700">
-<!-- 2. SÖRKERESŐ ÉS CSEMPÉK -->
-<div>
-<div class="flex justify-between items-center mb-3">
-<h2 class="text-base font-bold text-slate-200" id="txt-sec1">2. Marke / Brauerei</h2>
-<span class="text-xs text-amber-500 cursor-pointer font-semibold" onclick="selectAllBeers()" id="txt-select-all">Alle auswählen</span>
-</div>
-<input type="text" id="beerSearch" oninput="filterBeerTiles()" placeholder="Suche (z.B. Gösser, Pils)..." 
-class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500 mb-3">
-<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-64 overflow-y-auto p-1" id="beerGrid">
-</div>
-</div>
-<hr class="border-slate-700">
-<!-- 3. TÁVOLSÁG ÉS PONTOS BOLTKIZÁRÁS -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-<div>
-<label class="text-sm font-bold block mb-2 text-slate-200">
-<span id="txt-dist">Max. Entfernung</span>: <span id="distVal" class="text-amber-500">15</span> km
-</label>
-<input type="range" min="1" max="30" value="15" class="w-full accent-amber-500 cursor-pointer" id="distRange" oninput="document.getElementById('distVal').innerText = this.value; renderCalendar();">
-</div>
-<div>
-<h2 class="text-sm font-bold mb-2 text-slate-200" id="txt-stores">Geschäfte (Spezifisch)</h2>
-<div class="flex flex-wrap gap-2" id="storePills">
-</div>
-</div>
-</div>
-</section>
-<!-- NAPTÁR NÉZET (KÖVETKEZŐ 14 NAP) -->
-<section class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
-<div class="flex justify-between items-center mb-4">
-<h2 class="text-lg font-bold text-slate-100" id="txt-cal-title">Aktionen (Nächste 14 Tage)</h2>
-<div class="text-xs space-x-3 flex items-center">
-<span class="inline-flex items-center gap-1 text-green-400 font-medium">🟢 <span id="txt-legend-green">Aktion</span></span>
-<span class="inline-flex items-center gap-1 text-slate-400 font-medium">⬛ <span id="txt-legend-red">Keine</span></span>
-</div>
-</div>
-<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 text-center text-xs" id="calendarGrid">
-</div>
-</section>
-<!-- TALÁLATOK LISTÁJA -->
-<section id="detailsSection" class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg hidden">
-<h3 class="text-base font-bold text-amber-500 border-b border-slate-700 pb-3 mb-4" id="selectedDateTitle">Aktionen am ausgewählten Tag</h3>
-<div id="dealsList" class="space-y-3">
-</div>
-</section>
-</div>
-<script>
-const i18n = {
-de: {
-subtitle: "Dein Kompass für Bierspezialitäten & Aktionen in Österreich",
-catTitle: "1. Bierstil / Kategorie",
-sec1: "2. Marke / Brauerei",
-selectAll: "Alle auswählen / abwählen",
-searchPlaceholder: "Suche Marke, Sorte (z.B. Gösser, Pils)...",
-dist: "Max. Entfernung",
-stores: "Geschäfte filtern",
-calTitle: "Aktionen (Nächste 14 Tage)",
-legendGreen: "Aktion aktiv",
-legendRed: "Keine Aktion",
-dateTitle: "Aktionen am"
-},
-en: {
-subtitle: "Your compass for beer deals & promotions in Austria",
-catTitle: "1. Beer Style / Category",
-sec1: "2. Brand / Brewery",
-selectAll: "Select / Deselect All",
-searchPlaceholder: "Search brand, style (e.g. Gösser, Pils)...",
-dist: "Max. Distance",
-stores: "Filter Stores",
-calTitle: "Deals (Next 14 Days)",
-legendGreen: "Deal active",
-legendRed: "No deal",
-dateTitle: "Deals on"
-}
-};
-let currentLang = 'de';
-const categories = [
-{ id: 'Lager', name: 'Märzen / Lager' },
-{ id: 'Pils', name: 'Pils' },
-{ id: 'Weizen', name: 'Weizen / Weißbier' },
-{ id: 'IPA', name: 'IPA / APA' },
-{ id: 'Dunkel', name: 'Dunkel / Stout' },
-{ id: 'Alkoholfrei', name: 'Alkoholfrei' }
-];
-let activeCategory = 'Lager';
-const allBeers = [
-{ id: 'Gösser', name: 'Gösser', style: 'Lager', icon: '🍺' },
-{ id: 'Zipfer', name: 'Zipfer', style: 'Pils', icon: '🍺' },
-{ id: 'Stiegl', name: 'Stiegl', style: 'Lager', icon: '🍺' },
-{ id: 'Puntigamer', name: 'Puntigamer', style: 'Lager', icon: '🍺' },
-{ id: 'Murauer', name: 'Murauer', style: 'Lager', icon: '🍺' },
-{ id: 'Ottakringer', name: 'Ottakringer', style: 'Lager', icon: '🍺' },
-{ id: 'Schneider', name: 'Schneider Weisse', style: 'Weizen', icon: '🌾' },
-{ id: 'Franziskaner', name: 'Franziskaner', style: 'Weizen', icon: '🌾' },
-{ id: 'BrewDog', name: 'BrewDog Punk IPA', style: 'IPA', icon: '🌿' },
-{ id: 'Hirter', name: 'Hirter Dunkel', style: 'Dunkel', icon: '🍻' },
-{ id: 'GössaAF', name: 'Gösser Naturtrüb 0.0', style: 'Alkoholfrei', icon: '🛑' }
-];
-const storesList = ['SPAR', 'EUROSPAR', 'INTERSPAR', 'BILLA', 'BILLA Plus', 'HOFER', 'LIDL', 'PENNY', 'METRO'];
-let activeStores = [...storesList];
-let selectedBeers = allBeers.map(b => b.id);
-function getFormattedDate(offsetDays) {
-const d = new Date();
-d.setDate(d.getDate() + offsetDays);
-return d.toISOString().split('T')[0];
-}
-let sampleDeals = [];
-async function loadDealsData() {
-try {
-const res = await fetch('deals.json');
-if (res.ok) {
-sampleDeals = await res.json();
-} else {
-generateSampleDeals();
-}
-} catch (e) {
-generateSampleDeals();
-}
-renderCalendar();
-}
-function generateSampleDeals() {
-sampleDeals = [];
-for (let i = 0; i < 8; i++) {
-sampleDeals.push({
-date: getFormattedDate(i),
-store: 'METRO',
-distance: 8.5,
-beer: 'Stiegl',
-name: 'Stiegl Goldbräu 20x0.5L Kiste',
-price: '14.90 €',
-origPrice: '19.90 €',
-note: 'Kistenpreis'
-});
-}
-for (let i = 2; i < 7; i++) {
-sampleDeals.push({
-date: getFormattedDate(i),
-store: 'HOFER',
-distance: 3.1,
-beer: 'Puntigamer',
-name: 'Puntigamer das Bier 0.5L Dose',
-price: '0.69 €',
-origPrice: '1.19 €',
-note: 'Wochenend-Aktion'
-});
-}
-for (let i = 0; i < 7; i++) {
-const isWeekend = (i === 2 || i === 3 || i === 9 || i === 10);
-sampleDeals.push({
-date: getFormattedDate(i),
-store: 'BILLA Plus',
-distance: 2.1,
-beer: 'Puntigamer',
-name: 'Puntigamer Märzen 0.5L Dose',
-price: isWeekend ? '0.74 €' : '0.99 €',
-origPrice: isWeekend ? '1.16 €' : '1.54 €',
-note: isWeekend ? 'Ab 12 Dosen (Fr-Sa Bonus)' : 'Ab 12 Dosen (Do/Mo-Mi)'
-});
-}
-for (let i = 0; i < 5; i++) {
-sampleDeals.push({
-date: getFormattedDate(i),
-store: 'INTERSPAR',
-distance: 4.5,
-beer: 'Gösser',
-name: 'Gösser Märzen 20x0.5L Flasche',
-price: '13.80 €',
-origPrice: '21.80 €',
-note: 'Exklusiv bei INTERSPAR'
-});
-}
-}
-function renderCategories() {
-const container = document.getElementById('categoryPills');
-container.innerHTML = '';
-categories.forEach(cat => {
-const isActive = activeCategory === cat.id;
-container.innerHTML += ⁠<button onclick="setCategory('${cat.id}')"  class="px-3.5 py-2 rounded-xl text-xs font-bold border transition ${isActive ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md shadow-amber-500/20' : 'bg-slate-900 text-slate-400 border-slate-700 hover:border-slate-500'}"> ${cat.name} </button>⁠;
-});
-}
-function setCategory(catId) {
-activeCategory = catId;
-renderCategories();
-renderBeerTiles();
-renderCalendar();
-}
-function renderBeerTiles() {
-const grid = document.getElementById('beerGrid');
-grid.innerHTML = '';
-const filteredBeers = allBeers.filter(b => b.style === activeCategory);
-filteredBeers.forEach(b => {
-const isSel = selectedBeers.includes(b.id);
-grid.innerHTML += ⁠<button onclick="toggleBeer('${b.id}')" id="tile-${b.id}"  class="p-2.5 rounded-xl border text-center transition flex flex-col items-center justify-center h-20 ${isSel ? 'border-amber-500 bg-amber-500/10 text-white font-bold shadow-md shadow-amber-500/10' : 'border-slate-700 bg-slate-900/60 text-slate-500 hover:border-slate-500'}"> <span class="text-2xl mb-1">${b.icon}</span> <span class="text-xs font-semibold">${b.name}</span> </button>⁠;
-});
-}
-function filterBeerTiles() {
-const query = document.getElementById('beerSearch').value.toLowerCase();
-allBeers.forEach(b => {
-const tile = document.getElementById(⁠tile-${b.id}⁠);
-const match = b.name.toLowerCase().includes(query) || b.style.toLowerCase().includes(query);
-if (tile) tile.style.display = match ? 'flex' : 'none';
-});
-}
-function toggleBeer(id) {
-if (selectedBeers.includes(id)) {
-selectedBeers = selectedBeers.filter(b => b !== id);
-} else {
-selectedBeers.push(id);
-}
-renderBeerTiles();
-renderCalendar();
-}
-function selectAllBeers() {
-const currentCatBeers = allBeers.filter(b => b.style === activeCategory).map(b => b.id);
-const allSelectedInCat = currentCatBeers.every(id => selectedBeers.includes(id));
-if (allSelectedInCat) {
-selectedBeers = selectedBeers.filter(id => !currentCatBeers.includes(id));
-} else {
-selectedBeers = Array.from(new Set([...selectedBeers, ...currentCatBeers]));
-}
-renderBeerTiles();
-renderCalendar();
-}
-function renderStorePills() {
-const container = document.getElementById('storePills');
-container.innerHTML = '';
-storesList.forEach(store => {
-const isOn = activeStores.includes(store);
-container.innerHTML += ⁠<button onclick="toggleStore('${store}')"  class="px-2.5 py-1.5 rounded-lg text-xs font-bold border transition ${isOn ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-900 text-slate-500 border-slate-700 line-through'}"> ${isOn ? '✓' : '✗'} ${store} </button>⁠;
-});
-}
-function toggleStore(store) {
-if (activeStores.includes(store)) {
-activeStores = activeStores.filter(s => s !== store);
-} else {
-activeStores.push(store);
-}
-renderStorePills();
-renderCalendar();
-}
-function renderCalendar() {
-const grid = document.getElementById('calendarGrid');
-const maxDist = parseFloat(document.getElementById('distRange').value);
-grid.innerHTML = '';
-for (let i = 0; i < 14; i++) {
-const dateStr = getFormattedDate(i);
-const dObj = new Date();
-dObj.setDate(dObj.getDate() + i);
-const dayName = dObj.toLocaleDateString(currentLang === 'de' ? 'de-DE' : 'en-US', { weekday: 'short' });
-const monthDay = dObj.toLocaleDateString(currentLang === 'de' ? 'de-DE' : 'en-US', { day: '2-digit', month: 'short' });
-const activeDealsOnDay = sampleDeals.filter(deal =>
-deal.date === dateStr &&
-selectedBeers.includes(deal.beer) &&
-deal.distance <= maxDist &&
-activeStores.includes(deal.store)
-);
-const hasDeal = activeDealsOnDay.length > 0;
-const bgClass = hasDeal
-? 'bg-green-600 text-white font-bold cursor-pointer hover:bg-green-500 shadow-lg shadow-green-950/50'
-: 'bg-slate-900/80 text-slate-600 border border-slate-800';
-grid.innerHTML += ⁠<div onclick="${hasDeal ?⁠showDetails('{dateStr}')` : ''}" 
-\bm{class="${bgClass} p-2 rounded-xl transition flex flex-col items-center justify-center h-14 relative">}
-\bm{<span class="text-[10px] uppercase opacity-80">${dayName}</span>}
-\bm{<span class="text-xs font-extrabold">${monthDay}</span>}
-${hasDeal ? `<span class="absolute top-1 right-1 bg-green-950 text-green-300 text-[9px] px-1.5 py-0.2 rounded-full font-bold">{activeDealsOnDay.length}</span>⁠: ''} </div>⁠;
-}
-}
-function showDetails(dateStr) {
-const maxDist = parseFloat(document.getElementById('distRange').value);
-const section = document.getElementById('detailsSection');
-const list = document.getElementById('dealsList');
-const title = document.getElementById('selectedDateTitle');
-const deals = sampleDeals.filter(d =>
-d.date === dateStr &&
-selectedBeers.includes(d.beer) &&
-d.distance <= maxDist &&
-activeStores.includes(d.store)
-);
-title.innerText = ⁠${i18n[currentLang].dateTitle} ${dateStr}⁠;
-list.innerHTML = '';
-deals.forEach(d => {
-const mapsUrl = ⁠[https://www.google.com/maps/search/?api=1&query=$](https://www.google.com/maps/search/?api=1&query=$){encodeURIComponent(d.store)}⁠;
-list.innerHTML += ⁠<div class="border border-slate-700 rounded-xl p-4 flex justify-between items-center bg-slate-900/60"> <div> <div class="flex items-center gap-2"> <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"  class="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded font-bold uppercase hover:bg-amber-500 hover:text-slate-950 transition flex items-center gap-1"> 📍 ${d.store} (${d.distance} km) ↗ </a> </div> <h4 class="font-bold text-base mt-1.5 text-slate-100">${d.name}</h4> ${d.note ?⁠<p class="text-xs text-amber-400/90 mt-0.5">ℹ️ {d.note}</p>` : ''}
-\bm{</div>}
-\bm{<div class="text-right">}
-\bm{<span class="text-lg font-extrabold text-green-400">${d.price}</span>}
-${d.origPrice ? `<span class="text-xs text-slate-500 line-through block">{d.origPrice}</span>⁠: ''} </div> </div>⁠;
-});
-section.classList.remove('hidden');
-section.scrollIntoView({ behavior: 'smooth' });
-}
-function setLanguage(lang) {
-currentLang = lang;
-document.getElementById('btn-de').className = lang === 'de' ? "px-3 py-1 text-xs font-bold rounded-lg bg-amber-500 text-slate-900" : "px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white";
-document.getElementById('btn-en').className = lang === 'en' ? "px-3 py-1 text-xs font-bold rounded-lg bg-amber-500 text-slate-900" : "px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white";
-document.getElementById('txt-subtitle').innerText = i18n[lang].subtitle;
-document.getElementById('txt-cat-title').innerText = i18n[lang].catTitle;
-document.getElementById('txt-sec1').innerText = i18n[lang].sec1;
-document.getElementById('txt-select-all').innerText = i18n[lang].selectAll;
-document.getElementById('beerSearch').placeholder = i18n[lang].searchPlaceholder;
-document.getElementById('txt-dist').innerText = i18n[lang].dist;
-document.getElementById('txt-stores').innerText = i18n[lang].stores;
-document.getElementById('txt-cal-title').innerText = i18n[lang].calTitle;
-document.getElementById('txt-legend-green').innerText = i18n[lang].legendGreen;
-document.getElementById('txt-legend-red').innerText = i18n[lang].legendRed;
-renderCalendar();
-}
-renderCategories();
-renderBeerTiles();
-renderStorePills();
-loadDealsData();
-setLanguage('de');
-</script>
+
+    <div class="max-w-4xl mx-auto space-y-6">
+        <!-- Header / Sprachauswahl -->
+        <header class="bg-slate-800 border border-slate-700 p-5 rounded-2xl shadow-xl flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-amber-500 flex items-center gap-2">🧭 Bierkompass AT</h1>
+                <p class="text-slate-400 text-xs mt-1" id="txt-subtitle">Dein Kompass für Bierspezialitäten & Aktionen in Österreich</p>
+            </div>
+            <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700">
+                <button onclick="setLanguage('de')" id="btn-de" class="px-3 py-1 text-xs font-bold rounded-lg bg-amber-500 text-slate-900 transition">DE</button>
+                <button onclick="setLanguage('en')" id="btn-en" class="px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition">EN</button>
+            </div>
+        </header>
+
+        <!-- Filter-Bereich -->
+        <section class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg space-y-6">
+            <!-- 1. Bierstil / Kategorie -->
+            <div>
+                <h2 class="text-base font-bold text-slate-200 mb-3" id="txt-cat-title">1. Bierstil / Kategorie</h2>
+                <div class="flex flex-wrap gap-2" id="categoryPills"></div>
+            </div>
+
+            <hr class="border-slate-700">
+
+            <!-- 2. Marke / Brauerei -->
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-base font-bold text-slate-200" id="txt-sec1">2. Marke / Brauerei</h2>
+                    <span class="text-xs text-amber-500 cursor-pointer font-semibold" onclick="selectAllBeers()" id="txt-select-all">Alle auswählen</span>
+                </div>
+                <input type="text" id="beerSearch" oninput="filterBeerTiles()" placeholder="Suche (z.B. Gösser, Pils)..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500 mb-3 transition">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-64 overflow-y-auto p-1" id="beerGrid"></div>
+            </div>
+
+            <hr class="border-slate-700">
+
+            <!-- 3. Entfernung & Geschäfte -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="text-sm font-bold block mb-2 text-slate-200"><span id="txt-dist">Max. Entfernung</span>: <span id="distVal" class="text-amber-500">15</span> km</label>
+                    <input type="range" min="1" max="30" value="15" class="w-full accent-amber-500 cursor-pointer" id="distRange" oninput="document.getElementById('distVal').innerText = this.value; renderCalendar();">
+                </div>
+                <div>
+                    <h2 class="text-sm font-bold mb-2 text-slate-200" id="txt-stores">Geschäfte (Spezifisch)</h2>
+                    <div class="flex flex-wrap gap-2" id="storePills"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Kalender-Übersicht (14 Tage) -->
+        <section class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-slate-100" id="txt-cal-title">Aktionen (Nächste 14 Tage)</h2>
+                <div class="text-xs space-x-3 flex items-center">
+                    <span class="inline-flex items-center gap-1 text-green-400 font-medium">🟢 <span id="txt-legend-green">Aktion</span></span>
+                    <span class="inline-flex items-center gap-1 text-slate-400 font-medium">⬛ <span id="txt-legend-red">Keine</span></span>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 text-center text-xs" id="calendarGrid"></div>
+        </section>
+
+        <!-- Details-Anzeige -->
+        <section id="detailsSection" class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg hidden">
+            <h3 class="text-base font-bold text-amber-500 border-b border-slate-700 pb-3 mb-4" id="selectedDateTitle">Aktionen am ausgewählten Tag</h3>
+            <div id="dealsList" class="space-y-3"></div>
+        </section>
+    </div>
+
+    <script>
+        const i18n = {
+            de: {
+                subtitle: "Dein Kompass für Bierspezialitäten & Aktionen in Österreich",
+                catTitle: "1. Bierstil / Kategorie",
+                sec1: "2. Marke / Brauerei",
+                selectAll: "Alle auswählen / abwählen",
+                searchPlaceholder: "Suche Marke, Sorte (z.B. Gösser, Pils)...",
+                dist: "Max. Entfernung",
+                stores: "Geschäfte filtern",
+                calTitle: "Aktionen (Nächste 14 Tage)",
+                legendGreen: "Aktion aktiv",
+                legendRed: "Keine Aktion",
+                dateTitle: "Aktionen am"
+            },
+            en: {
+                subtitle: "Your compass for beer deals & promotions in Austria",
+                catTitle: "1. Beer Style / Category",
+                sec1: "2. Brand / Brewery",
+                selectAll: "Select / Deselect All",
+                searchPlaceholder: "Search brand, style (e.g. Gösser, Pils)...",
+                dist: "Max. Distance",
+                stores: "Filter Stores",
+                calTitle: "Deals (Next 14 Days)",
+                legendGreen: "Deal active",
+                legendRed: "No deal",
+                dateTitle: "Deals on"
+            }
+        };
+
+        let currentLang = 'de';
+
+        const categories = [
+            { id: 'Lager', name: 'Märzen / Lager' },
+            { id: 'Pils', name: 'Pils' },
+            { id: 'Weizen', name: 'Weizen / Weißbier' },
+            { id: 'IPA', name: 'IPA / APA' },
+            { id: 'Dunkel', name: 'Dunkel / Stout' },
+            { id: 'Alkoholfrei', name: 'Alkoholfrei' }
+        ];
+        let activeCategory = 'Lager';
+
+        const allBeers = [
+            { id: 'Gösser', name: 'Gösser', style: 'Lager', icon: '🍺' },
+            { id: 'Zipfer', name: 'Zipfer', style: 'Pils', icon: '🍺' },
+            { id: 'Stiegl', name: 'Stiegl', style: 'Lager', icon: '🍺' },
+            { id: 'Puntigamer', name: 'Puntigamer', style: 'Lager', icon: '🍺' },
+            { id: 'Murauer', name: 'Murauer', style: 'Lager', icon: '🍺' },
+            { id: 'Ottakringer', name: 'Ottakringer', style: 'Lager', icon: '🍺' },
+            { id: 'Schneider', name: 'Schneider Weisse', style: 'Weizen', icon: '🌾' },
+            { id: 'Franziskaner', name: 'Franziskaner', style: 'Weizen', icon: '🌾' },
+            { id: 'BrewDog', name: 'BrewDog Punk IPA', style: 'IPA', icon: '🌿' },
+            { id: 'Hirter', name: 'Hirter Dunkel', style: 'Dunkel', icon: '🍻' },
+            { id: 'GössaAF', name: 'Gösser Naturtrüb 0.0', style: 'Alkoholfrei', icon: '🛑' }
+        ];
+
+        const storesList = ['SPAR', 'EUROSPAR', 'INTERSPAR', 'BILLA', 'BILLA Plus', 'HOFER', 'LIDL', 'PENNY', 'METRO'];
+        let activeStores = [...storesList];
+        let selectedBeers = allBeers.map(b => b.id);
+
+        function getFormattedDate(offset) {
+            const d = new Date();
+            d.setDate(d.getDate() + offset);
+            return d.toISOString().split('T')[0];
+        }
+
+        let sampleDeals = [];
+
+        async function loadDealsData() {
+            try {
+                const res = await fetch('deals.json');
+                if (res.ok) {
+                    sampleDeals = await res.json();
+                } else {
+                    generateSampleDeals();
+                }
+            } catch (e) {
+                generateSampleDeals();
+            }
+            renderCalendar();
+        }
+
+        function generateSampleDeals() {
+            sampleDeals = [];
+            for (let i = 0; i < 8; i++) {
+                sampleDeals.push({ date: getFormattedDate(i), store: 'METRO', distance: 8.5, beer: 'Stiegl', name: 'Stiegl Goldbräu 20x0.5L Kiste', price: '14.90 €', origPrice: '19.90 €', note: 'Kistenpreis' });
+            }
+            for (let i = 2; i < 7; i++) {
+                sampleDeals.push({ date: getFormattedDate(i), store: 'HOFER', distance: 3.1, beer: 'Puntigamer', name: 'Puntigamer das Bier 0.5L Dose', price: '0.69 €', origPrice: '1.19 €', note: 'Wochenend-Aktion' });
+            }
+            for (let i = 0; i < 7; i++) {
+                const isWeekend = (i === 2 || i === 3 || i === 9 || i === 10);
+                sampleDeals.push({
+                    date: getFormattedDate(i),
+                    store: 'BILLA Plus',
+                    distance: 2.1,
+                    beer: 'Puntigamer',
+                    name: 'Puntigamer Märzen 0.5L Dose',
+                    price: isWeekend ? '0.74 €' : '0.99 €',
+                    origPrice: isWeekend ? '1.16 €' : '1.54 €',
+                    note: isWeekend ? 'Ab 12 Dosen (Fr-Sa Bonus)' : 'Ab 12 Dosen (Do/Mo-Mi)'
+                });
+            }
+            for (let i = 0; i < 5; i++) {
+                sampleDeals.push({ date: getFormattedDate(i), store: 'INTERSPAR', distance: 4.5, beer: 'Gösser', name: 'Gösser Märzen 20x0.5L Flasche', price: '13.80 €', origPrice: '21.80 €', note: 'Exklusiv bei INTERSPAR' });
+            }
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoryPills');
+            container.innerHTML = '';
+            categories.forEach(cat => {
+                const isActive = activeCategory === cat.id;
+                container.innerHTML += `
+                    <button onclick="setCategory('${cat.id}')" class="px-3.5 py-2 rounded-xl text-xs font-bold border transition ${isActive ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md shadow-amber-500/20' : 'bg-slate-900 text-slate-400 border-slate-700 hover:border-slate-500'}">
+                        ${cat.name}
+                    </button>
+                `;
+            });
+        }
+
+        function setCategory(catId) {
+            activeCategory = catId;
+            renderCategories();
+            renderBeerTiles();
+            renderCalendar();
+        }
+
+        function renderBeerTiles() {
+            const grid = document.getElementById('beerGrid');
+            grid.innerHTML = '';
+            const filtered = allBeers.filter(b => b.style === activeCategory);
+            filtered.forEach(b => {
+                const isSel = selectedBeers.includes(b.id);
+                grid.innerHTML += `
+                    <button onclick="toggleBeer('${b.id}')" id="tile-${b.id}" class="p-2.5 rounded-xl border text-center transition flex flex-col items-center justify-center h-20 ${isSel ? 'border-amber-500 bg-amber-500/10 text-white font-bold shadow-md shadow-amber-500/10' : 'border-slate-700 bg-slate-900/60 text-slate-500 hover:border-slate-500'}">
+                        <span class="text-2xl mb-1">${b.icon}</span>
+                        <span class="text-xs font-semibold">${b.name}</span>
+                    </button>
+                `;
+            });
+        }
+
+        function filterBeerTiles() {
+            const query = document.getElementById('beerSearch').value.toLowerCase();
+            allBeers.forEach(b => {
+                const tile = document.getElementById(`tile-${b.id}`);
+                if (tile) {
+                    const match = b.name.toLowerCase().includes(query) || b.style.toLowerCase().includes(query);
+                    tile.style.display = match ? 'flex' : 'none';
+                }
+            });
+        }
+
+        function toggleBeer(id) {
+            if (selectedBeers.includes(id)) {
+                selectedBeers = selectedBeers.filter(b => b !== id);
+            } else {
+                selectedBeers.push(id);
+            }
+            renderBeerTiles();
+            renderCalendar();
+        }
+
+        function selectAllBeers() {
+            const currentCategoryBeerIds = allBeers.filter(b => b.style === activeCategory).map(b => b.id);
+            const allSelected = currentCategoryBeerIds.every(id => selectedBeers.includes(id));
+            
+            if (allSelected) {
+                selectedBeers = selectedBeers.filter(id => !currentCategoryBeerIds.includes(id));
+            } else {
+                selectedBeers = Array.from(new Set([...selectedBeers, ...currentCategoryBeerIds]));
+            }
+            renderBeerTiles();
+            renderCalendar();
+        }
+
+        function renderStorePills() {
+            const container = document.getElementById('storePills');
+            container.innerHTML = '';
+            storesList.forEach(store => {
+                const isOn = activeStores.includes(store);
+                container.innerHTML += `
+                    <button onclick="toggleStore('${store}')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold border transition ${isOn ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-slate-900 text-slate-500 border-slate-700 line-through'}">
+                        ${isOn ? '✓' : '✗'} ${store}
+                    </button>
+                `;
+            });
+        }
+
+        function toggleStore(store) {
+            if (activeStores.includes(store)) {
+                activeStores = activeStores.filter(s => s !== store);
+            } else {
+                activeStores.push(store);
+            }
+            renderStorePills();
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const maxDist = parseFloat(document.getElementById('distRange').value);
+            grid.innerHTML = '';
+
+            for (let i = 0; i < 14; i++) {
+                const dateStr = getFormattedDate(i);
+                const dObj = new Date();
+                dObj.setDate(dObj.getDate() + i);
+
+                const dayName = dObj.toLocaleDateString(currentLang === 'de' ? 'de-DE' : 'en-US', { weekday: 'short' });
+                const monthDay = dObj.toLocaleDateString(currentLang === 'de' ? 'de-DE' : 'en-US', { day: '2-digit', month: 'short' });
+
+                const activeDeals = sampleDeals.filter(d => 
+                    d.date === dateStr && 
+                    selectedBeers.includes(d.beer) && 
+                    d.distance <= maxDist &&
+                    activeStores.includes(d.store)
+                );
+
+                const hasDeal = activeDeals.length > 0;
+                const bg = hasDeal 
+                    ? 'bg-green-600 text-white font-bold cursor-pointer hover:bg-green-500 shadow-lg shadow-green-950/50' 
+                    : 'bg-slate-900/80 text-slate-600 border border-slate-800';
+
+                grid.innerHTML += `
+                    <div onclick="${hasDeal ? `showDetails('${dateStr}')` : ''}" class="${bg} p-2 rounded-xl transition flex flex-col items-center justify-center h-14 relative">
+                        <span class="text-[10px] uppercase opacity-80">${dayName}</span>
+                        <span class="text-xs font-extrabold">${monthDay}</span>
+                        ${hasDeal ? `<span class="absolute top-1 right-1 bg-green-950 text-green-300 text-[9px] px-1.5 py-0.2 rounded-full font-bold">${activeDeals.length}</span>` : ''}
+                    </div>
+                `;
+            }
+        }
+
+        function showDetails(dateStr) {
+            const maxDist = parseFloat(document.getElementById('distRange').value);
+            const section = document.getElementById('detailsSection');
+            const list = document.getElementById('dealsList');
+            
+            document.getElementById('selectedDateTitle').innerText = `${i18n[currentLang].dateTitle} ${dateStr}`;
+            list.innerHTML = '';
+
+            const deals = sampleDeals.filter(d => 
+                d.date === dateStr && 
+                selectedBeers.includes(d.beer) && 
+                d.distance <= maxDist &&
+                activeStores.includes(d.store)
+            );
+
+            deals.forEach(d => {
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.store)}`;
+                list.innerHTML += `
+                    <div class="border border-slate-700 rounded-xl p-4 flex justify-between items-center bg-slate-900/60">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded font-bold uppercase hover:bg-amber-500 hover:text-slate-950 transition flex items-center gap-1">
+                                    📍 ${d.store} (${d.distance} km) ↗
+                                </a>
+                            </div>
+                            <h4 class="font-bold text-base mt-1.5 text-slate-100">${d.name}</h4>
+                            ${d.note ? `<p class="text-xs text-amber-400/90 mt-0.5">ℹ️ ${d.note}</p>` : ''}
+                        </div>
+                        <div class="text-right">
+                            <span class="text-lg font-extrabold text-green-400">${d.price}</span>
+                            ${d.origPrice ? `<span class="text-xs text-slate-500 line-through block">${d.origPrice}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            section.classList.remove('hidden');
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.getElementById('btn-de').className = lang === 'de' ? "px-3 py-1 text-xs font-bold rounded-lg bg-amber-500 text-slate-900 transition" : "px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
+            document.getElementById('btn-en').className = lang === 'en' ? "px-3 py-1 text-xs font-bold rounded-lg bg-amber-500 text-slate-900 transition" : "px-3 py-1 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
+            
+            document.getElementById('txt-subtitle').innerText = i18n[lang].subtitle;
+            document.getElementById('txt-cat-title').innerText = i18n[lang].catTitle;
+            document.getElementById('txt-sec1').innerText = i18n[lang].sec1;
+            document.getElementById('txt-select-all').innerText = i18n[lang].selectAll;
+            document.getElementById('beerSearch').placeholder = i18n[lang].searchPlaceholder;
+            document.getElementById('txt-dist').innerText = i18n[lang].dist;
+            document.getElementById('txt-stores').innerText = i18n[lang].stores;
+            document.getElementById('txt-cal-title').innerText = i18n[lang].calTitle;
+            document.getElementById('txt-legend-green').innerText = i18n[lang].legendGreen;
+            document.getElementById('txt-legend-red').innerText = i18n[lang].legendRed;
+
+            renderCalendar();
+        }
+
+        renderCategories();
+        renderBeerTiles();
+        renderStorePills();
+        loadDealsData();
+        setLanguage('de');
+    </script>
 </body>
 </html>
