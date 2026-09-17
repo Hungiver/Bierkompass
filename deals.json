@@ -1,1 +1,63 @@
-[]
+
+[
+  {
+    "date": "2026-09-17",
+    "store": "PENNY",
+    "distance": 1.5,
+    "beer": "Puntigamer",
+    "name": "Puntigamer 0.5L Dose",
+    "price": "0.99 €",
+    "origPrice": "1.39 €",
+    "note": "Aktion bis 23.09."
+  },
+  {
+    "date": "2026-09-17",
+    "store": "PENNY",
+    "distance": 1.5,
+    "beer": "Schwechater",
+    "name": "Schwechater Bier² 10L Kiste",
+    "price": "11.80 €",
+    "origPrice": "19.60 €",
+    "note": "0,59€/Dose! Bis 19.09."
+  },
+  {
+    "date": "2026-09-17",
+    "store": "PENNY",
+    "distance": 1.5,
+    "beer": "Stiegl",
+    "name": "Stiegl Goldbräu 0.33L Flasche",
+    "price": "0.64 €",
+    "origPrice": "0.97 €",
+    "note": "Aktion bis 23.09."
+  },
+  {
+    "date": "2026-09-17",
+    "store": "BILLA",
+    "distance": 2.0,
+    "beer": "Schwechater",
+    "name": "Schwechater Bier 0.5L Flasche",
+    "price": "0.69 €",
+    "origPrice": "1.19 €",
+    "note": "Aktion W38"
+  },
+  {
+    "date": "2026-09-17",
+    "store": "HOFER",
+    "distance": 2.0,
+    "beer": "Ottakringer",
+    "name": "Ottakringer Kühles Blondes Märzen 0.5L",
+    "price": "0.74 €",
+    "origPrice": "1.18 €",
+    "note": "Hofer Wochenend-Aktion"
+  },
+  {
+    "date": "2026-09-17",
+    "store": "SPAR",
+    "distance": 1.8,
+    "beer": "Wieselburger",
+    "name": "Wieselburger Gold 0.5L Dose / Flasche",
+    "price": "0.69 €",
+    "origPrice": "1.25 €",
+    "note": "Aktion bis 23.09."
+  }
+]
