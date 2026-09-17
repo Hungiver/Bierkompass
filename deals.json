@@ -1,68 +1,93 @@
-[
-  {
-    "date": "2026-09-17",
-    "validUntil": "2026-09-23",
-    "store": "PENNY",
-    "distance": 1.5,
-    "beer": "Puntigamer",
-    "name": "Puntigamer 0.5L Dose",
-    "price": "0.99 €",
-    "origPrice": "1.39 €",
-    "note": "Aktion bis 23.09."
-  },
-  {
-    "date": "2026-09-17",
-    "validUntil": "2026-09-19",
-    "store": "PENNY",
-    "distance": 1.5,
-    "beer": "Schwechater",
-    "name": "Schwechater Bier² 10L Kiste",
-    "price": "11.80 €",
-    "origPrice": "19.60 €",
-    "note": "0,59€/Dose! Bis 19.09."
-  },
-  {
-    "date": "2026-09-17",
-    "validUntil": "2026-09-23",
-    "store": "PENNY",
-    "distance": 1.5,
-    "beer": "Stiegl",
-    "name": "Stiegl Goldbräu 0.33L Flasche",
-    "price": "0.64 €",
-    "origPrice": "0.97 €",
-    "note": "Aktion bis 23.09."
-  },
-  {
-    "date": "2026-09-17",
-    "validUntil": "2026-09-23",
-    "store": "BILLA",
-    "distance": 2.0,
-    "beer": "Schwechater",
-    "name": "Schwechater Bier 0.5L Flasche",
-    "price": "0.69 €",
-    "origPrice": "1.19 €",
-    "note": "Aktion W38"
-  },
-  {
-    "date": "2026-09-17",
-    "validUntil": "2026-09-20",
-    "store": "HOFER",
-    "distance": 2.0,
-    "beer": "Ottakringer",
-    "name": "Ottakringer Kühles Blondes Märzen 0.5L",
-    "price": "0.74 €",
-    "origPrice": "1.18 €",
-    "note": "Hofer Wochenend-Aktion"
-  },
-  {
-    "date": "2026-09-17",
-    "validUntil": "2026-09-23",
-    "store": "SPAR",
-    "distance": 1.8,
-    "beer": "Wieselburger",
-    "name": "Wieselburger Gold 0.5L Dose / Flasche",
-    "price": "0.69 €",
-    "origPrice": "1.25 €",
-    "note": "Aktion bis 23.09."
-  }
-]
+import json
+from datetime import datetime, timedelta
+
+def generate_multi_day_deals():
+    raw_deals = [
+        {
+            "start": "2026-09-17",
+            "end": "2026-09-23",
+            "store": "PENNY",
+            "distance": 1.5,
+            "beer": "Puntigamer",
+            "name": "Puntigamer 0.5L Dose",
+            "price": "0.99 €",
+            "origPrice": "1.39 €",
+            "note": "Aktion bis 23.09."
+        },
+        {
+            "start": "2026-09-17",
+            "end": "2026-09-19",
+            "store": "PENNY",
+            "distance": 1.5,
+            "beer": "Schwechater",
+            "name": "Schwechater Bier² 10L Kiste",
+            "price": "11.80 €",
+            "origPrice": "19.60 €",
+            "note": "0,59€/Dose! Bis 19.09."
+        },
+        {
+            "start": "2026-09-17",
+            "end": "2026-09-23",
+            "store": "PENNY",
+            "distance": 1.5,
+            "beer": "Stiegl",
+            "name": "Stiegl Goldbräu 0.33L Flasche",
+            "price": "0.64 €",
+            "origPrice": "0.97 €",
+            "note": "Aktion bis 23.09."
+        },
+        {
+            "start": "2026-09-17",
+            "end": "2026-09-23",
+            "store": "BILLA",
+            "distance": 2.1,
+            "beer": "Schwechater",
+            "name": "Schwechater Bier 0.5L Flasche",
+            "price": "0.69 €",
+            "origPrice": "1.19 €",
+            "note": "Aktion W38"
+        },
+        {
+            "start": "2026-09-17",
+            "end": "2026-09-20",
+            "store": "HOFER",
+            "distance": 2.8,
+            "beer": "Ottakringer",
+            "name": "Ottakringer Kühles Blondes 0.5L",
+            "price": "0.74 €",
+            "origPrice": "1.18 €",
+            "note": "Wochenend-Aktion"
+        },
+        {
+            "start": "2026-09-17",
+            "end": "2026-09-23",
+            "store": "SPAR",
+            "distance": 1.2,
+            "beer": "Wieselburger",
+            "name": "Wieselburger Gold 0.5L",
+            "price": "0.69 €",
+            "origPrice": "1.25 €",
+            "note": "Aktion bis 23.09."
+        }
+    ]
+
+    expanded_deals = []
+
+    for deal in raw_deals:
+        start_dt = datetime.strptime(deal["start"], "%Y-%m-%d")
+        end_dt = datetime.strptime(deal["end"], "%Y-%m-%d")
+        
+        curr_dt = start_dt
+        while curr_dt <= end_dt:
+            d_copy = deal.copy()
+            d_copy["date"] = curr_dt.strftime("%Y-%m-%d")
+            del d_copy["start"]
+            del d_copy["end"]
+            expanded_deals.append(d_copy)
+            curr_dt += timedelta(days=1)
+
+    with open("deals.json", "w", encoding="utf-8") as f:
+        json.dump(expanded_deals, f, ensure_ascii=False, indent=2)
+
+if __name__ == "__main__":
+    generate_multi_day_deals()
